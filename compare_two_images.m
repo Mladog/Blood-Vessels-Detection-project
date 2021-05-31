@@ -1,4 +1,4 @@
-function compare_two_images(detected, pattern)
+function [best_pattern, detected, matchedP, matchedD, SSIM, score] = compare_two_images(detected, pattern)
 %this function will compare two images: detected by the user and pattern
     
     detected = im2uint8(detected);
@@ -43,22 +43,15 @@ function compare_two_images(detected, pattern)
 
     %number of matched points
     st_best.score = size(indexPairs,1);
-   
-    subplot(3,1,1)
-    imshowpair(pattern,detected,'montage');
-    title('loaded images');
-    
-    subplot(3,1,2)
-    imshowpair(insertMarker(best_pattern, st_best.matched_pattern),insertMarker(detected,st_best.matched_detected),'montage');
-    title('Detected features and matched angle');
-
-    subplot(3,1,3)
-    showMatchedFeatures((best_pattern), (detected), st_best.matched_pattern, st_best.matched_detected,'montage');
-    title(['Detected ' num2str(st_best.score) ' matched features'])
-
-    
+       
     msg_ssim = ['SSIM value is ',num2str(st_best.ssimval)]; % 1 means identical
     disp(msg_ssim);
-
+    
+    %functions to return
+    matchedP = st_best.matched_pattern;
+    matchedD = st_best.matched_detected;
+    score = st_best.score;
+    SSIM = st_best.ssimval;
+    
     % add percentage of detected features
 end

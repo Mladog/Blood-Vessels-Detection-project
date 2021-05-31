@@ -32,30 +32,34 @@ classdef eye_pattern < matlab.mixin.SetGet
             im = obj.processed_image;
         end
         
-        %konstruktor
+        % constructor
+        % subclass must run superclass constructor, so operations done only
+        % on pattern cannot be called in the constructor
         function obj = eye_pattern
             obj.importData;
-%             obj.binarize;
-%             obj.crop;
         end
         
+        % functions to operate on pattern 
         function get_final_eye_pattern(obj)
             obj.binarize;
             obj.crop;            
         end
         
-        %update
+        % update pattern 
         function update(obj)
             obj.importData;
             obj.binarize;
             obj.crop;
         end
+    end
         
+        methods (Access = 'private')
         % cropping
-        function crop(obj) %funkcja przycinajaca odpowiednio obraz
-            edged_image = edge(obj.processed_image, 'canny'); %detecting the edges from image
+        function crop(obj) % function to crop image by the area of interest
+            edged_image = edge(obj.processed_image, 'nothinning'); %detecting the edges from image
 
-            [x,y] = find(edged_image==1); %finding detected area
+            %finding detected area
+            [x,y] = find(edged_image==1); 
             min_row = min(x);
             max_row = max(x);
             min_column = min(y);
@@ -64,11 +68,8 @@ classdef eye_pattern < matlab.mixin.SetGet
            cropped_image = obj.processed_image(min_row:max_row, min_column:max_column, :);
            obj.resized_image = imresize(cropped_image, [584 565]);
         end   
-    end
     
-    methods (Access = 'private')
 
-        
         function importData(obj) %function to import photo from user's computer
             [file,pt] = uigetfile('C:\Users\');
             if isnumeric(file) || isnumeric(pt) %if there is no path given
@@ -78,16 +79,14 @@ classdef eye_pattern < matlab.mixin.SetGet
             fullpath = {pt, file};
             obj.path = strjoin(fullpath, '');
 
-            if (string(ext) ~= '.mat' && string(ext) ~= '.jpg' && string(ext) ~= '.png') %input file must have .mat extension
+            if (string(ext) ~= '.mat' && string(ext) ~= '.jpg' && string(ext) ~= '.png' && string(ext) ~= '.JPG') %input file must have .mat extension
                 error('wrong extension')
             end
             imported = imread([pt, file]);
             obj.original_image = imported;
         end
-    end
-    
-    methods %private
-        function binarize(obj) %funkjcja sprawdzająca poprawność kolorystyczna
+
+        function binarize(obj) %function to check if given image is binary
             [~, ~, numberOfColorChannels] = size(obj.original_image);
             if numberOfColorChannels > 1 %means it's not binary, 
                 error('wrong picture color')
@@ -99,10 +98,13 @@ classdef eye_pattern < matlab.mixin.SetGet
                 binary_image = obj.original_image;
                 %cleaning noise
                 obj.processed_image = bwareaopen(binary_image, 80);
-            elseif bits < 10 %if BitDepth < 10 -> image is binary, but lost quality while compresion
+                
+            %if BitDepth < 10 -> image is binary, but lost quality while compresion
+            elseif bits < 10 
                 binary_image = imbinarize(obj.original_image);
                 %cleaning noise
                 obj.processed_image = bwareaopen(binary_image, 80);
+                
             else
                 error('image is not black-white')
             end
