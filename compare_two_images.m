@@ -1,30 +1,30 @@
-function [best_pattern, detected, matchedP, matchedD, SSIM, score] = compare_two_images(detected, pattern)
+function returned = compare_two_images(detected, pattern)
 %this function will compare two images: detected by the user and pattern
     
     detected = im2uint8(detected);
     pattern = im2uint8(pattern);
     
-    %defining best value as 0
-    st_best.angle = 0;
-    st_best.ssimval = 0;
+    %defining best value and angle as 0
+    best_angle = 0;
+    ssimval = 0;
 
     %rotating the image to fing the right angle (pattern does not have to be
     %rotated the same way)
 
     for i = 0:5:355
         rotated_pattern = imrotate(pattern, i, 'crop');
-        ssimval = ssim(detected, rotated_pattern);
+        ssimval_temp = ssim(detected, rotated_pattern);
         % if ssim (structural similarity) value is better in this
         % itteration, save ssim and rotation angle (i)
-        if ssimval > st_best.ssimval
-            st_best.ssimval = ssimval;
-            st_best.angle = i;
+        if ssimval_temp > ssimval
+            ssimval = ssimval_temp;
+            best_angle = i;
         end
         
     end
 
     %save a pattern for best ssim value 
-    best_pattern =  imrotate(pattern, st_best.angle, 'crop');
+    best_pattern =  imrotate(pattern, best_angle, 'crop');
     
     %searching for characteristic points of image
     ptsOriginal  = detectSURFFeatures(best_pattern);
@@ -38,20 +38,29 @@ function [best_pattern, detected, matchedP, matchedD, SSIM, score] = compare_two
     indexPairs = matchFeatures(featuresOriginal, featuresDistorted);
     
     %creating objects storing matched points for both images 
-    st_best.matched_pattern = validPtsOriginal(indexPairs(:,1));
-    st_best.matched_detected = validPtsDistorted(indexPairs(:,2));
+    matched_pattern = validPtsOriginal(indexPairs(:,1));
+    matched_detected = validPtsDistorted(indexPairs(:,2));
 
     %number of matched points
-    st_best.score = size(indexPairs,1);
-       
-    msg_ssim = ['SSIM value is ',num2str(st_best.ssimval)]; % 1 means identical
-    disp(msg_ssim);
-    
-    %functions to return
-    matchedP = st_best.matched_pattern;
-    matchedD = st_best.matched_detected;
-    score = st_best.score;
-    SSIM = st_best.ssimval;
-    
+    score = size(indexPairs,1);
+        
     % add percentage of detected features
+    f_original = ptsOriginal.Count;
+    f_distorted = ptsDistorted.Count;
+    
+    if f_original > f_distorted
+        worse_quality_detected = f_distorted;
+    else
+        worse_quality_detected = f_original;
+    end
+    
+    % values to return
+    returned.best_pattern = best_pattern;
+    returned.detected = detected;
+    returned.matchedP = matched_pattern;
+    returned.matchedD = matched_detected;
+    returned.score = score;
+    returned.SSIM = ssimval;
+    returned.percentage = score/worse_quality_detected*100;
+    
 end
