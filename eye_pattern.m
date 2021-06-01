@@ -1,11 +1,15 @@
 classdef eye_pattern < matlab.mixin.SetGet
-    
-    properties 
+    % values cannot be changed or got by program
+    properties (SetAccess = protected, GetAccess = protected)
         original_image
-        processed_image
-        resized_image
         path
     end  
+    
+    % values cannot be set by the program, but it can call them
+    properties (SetAccess = protected, GetAccess = public)
+        processed_image
+        resized_image
+    end
     
     methods
         function set.original_image(obj, val)
@@ -45,12 +49,6 @@ classdef eye_pattern < matlab.mixin.SetGet
             obj.crop;            
         end
         
-        % update pattern 
-        function update(obj)
-            obj.importData;
-            obj.binarize;
-            obj.crop;
-        end
     end
         
         methods (Access = 'private')
@@ -71,17 +69,14 @@ classdef eye_pattern < matlab.mixin.SetGet
     
 
         function importData(obj) %function to import photo from user's computer
-            [file,pt] = uigetfile('C:\Users\');
+            
+            [file,pt] = uigetfile({'*.jpg';'*.png';},'File Selector');
             if isnumeric(file) || isnumeric(pt) %if there is no path given
                 error('path not given')
             end
-            [~,~, ext] = fileparts(file);
             fullpath = {pt, file};
             obj.path = strjoin(fullpath, '');
 
-            if (string(ext) ~= '.mat' && string(ext) ~= '.jpg' && string(ext) ~= '.png' && string(ext) ~= '.JPG') %input file must have .mat extension
-                error('wrong extension')
-            end
             imported = imread([pt, file]);
             obj.original_image = imported;
         end

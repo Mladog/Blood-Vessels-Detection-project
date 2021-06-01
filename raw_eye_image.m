@@ -3,7 +3,7 @@ classdef raw_eye_image < eye_pattern
         green_channel
     end
     
-    methods
+    methods 
         
         function set.green_channel(obj, val)
             obj.green_channel = val;
@@ -12,23 +12,35 @@ classdef raw_eye_image < eye_pattern
         function im = get.green_channel(obj)
             im = obj.green_channel;
         end
-    end
-    
-    methods
+
         % constructor
         function obj = raw_eye_image
             obj.crop;
             obj.process;
         end
         
-        % update raw image
-        function update(obj)
-            obj.importData;
-            obj.crop;
-            obj.process;
+        function savePattern(obj) %function to save data on user's computer
+            [file,path] = uiputfile('*.jpg'); %output file will be saved with .mat extension
+            if isnumeric(file) || isnumeric(path)
+                error('wrong path')
+            end
+            fullpath = append(path, file);
+            
+            image_save = obj.processed_image;
+
+            %save(fullpath, 'image_save');
+            imwrite(image_save,fullpath);
         end
+    end
+    
+    methods (Access = 'private')
         
         function crop(obj) % function to crop image by the area of interest
+            [~, ~, numberOfColorChannels] = size(obj.original_image);
+            if numberOfColorChannels < 3 %means it's not RGB 
+                error('wrong picture color')
+            end
+            
             gray_image = rgb2gray(obj.original_image);
             [row, col] = size(gray_image);
             
@@ -56,14 +68,13 @@ classdef raw_eye_image < eye_pattern
             obj.resized_image = imresize(obj.resized_image, [584 565]);
             cropped_image = obj.green_channel(min_row:max_row, min_column:max_column, :);
             
-            
             %resizing image to have both raw image and patter in the same
             %size and to have better calculation time 
             obj.green_channel = imresize(cropped_image, [584 565]);
         end   
                 
         function process(obj)
-            %brightening the image to find treshold more efficienty
+            %brightening the image to find threshold more efficienty
             brighten_image = imlocalbrighten(obj.green_channel, 0.3);
             
             %making better contrast
@@ -78,14 +89,14 @@ classdef raw_eye_image < eye_pattern
             %subtracting filtrated image from enhanced
             subtracted_image = imsubtract(filtered_image, enhanced_image);
             
-            %defining an treshold level
-            level = treshold(subtracted_image);
+            %defining an threshold level
+            level = threshold(subtracted_image);
             
-            %binarizing the image using calculated treshold
+            %binarizing the image using calculated threshold
             binary_image = imbinarize(subtracted_image, level-0.005);
             
             %deleting the noise
             obj.processed_image = bwareaopen(binary_image, 80);
-        end 
+        end         
     end
 end
