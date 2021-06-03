@@ -36,9 +36,11 @@ classdef raw_eye_image < eye_pattern
     methods (Access = 'private')
         
         function crop(obj) % function to crop image by the area of interest
-            [~, ~, numberOfColorChannels] = size(obj.original_image);
-            if numberOfColorChannels < 3 %means it's not RGB 
-                error('wrong picture color')
+            image_info = imfinfo(obj.path);
+            bits = image_info.BitDepth;
+            
+            if bits < 10 
+               error('wrong picture color') 
             end
             
             gray_image = rgb2gray(obj.original_image);

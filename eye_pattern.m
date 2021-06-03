@@ -70,7 +70,7 @@ classdef eye_pattern < matlab.mixin.SetGet
 
         function importData(obj) %function to import photo from user's computer
             
-            [file,pt] = uigetfile({'*.jpg';'*.png';},'File Selector');
+            [file,pt] = uigetfile({'*.jpg'},'File Selector');
             if isnumeric(file) || isnumeric(pt) %if there is no path given
                 error('path not given')
             end
@@ -94,17 +94,14 @@ classdef eye_pattern < matlab.mixin.SetGet
                 %cleaning noise
                 obj.processed_image = bwareaopen(binary_image, 80);
                 
-            %if BitDepth < 10 -> image is binary, but lost quality while compresion
+            %if BitDepth < 8 -> image is binary, but lost quality while compresion
             elseif bits < 10 
                 binary_image = imbinarize(obj.original_image);
                 %cleaning noise
                 obj.processed_image = bwareaopen(binary_image, 80);
-                
             else
                 error('image is not black-white')
             end
-
         end
     end
-    
 end

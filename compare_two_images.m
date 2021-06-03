@@ -1,5 +1,5 @@
 function returned = compare_two_images(detected, pattern)
-%this function will compare two images: detected by the user and pattern
+%this function will compare two images: detected from user's raw image and pattern
     
     detected = im2uint8(detected);
     pattern = im2uint8(pattern);
