@@ -1,4 +1,10 @@
 function level = threshold(Image)
+    expected_size = [584 565];
+    image_size = size(Image);
+    if image_size(1) ~= expected_size(1) || image_size(2) ~= expected_size(2)
+        error('image was not processed')
+    end
+
     %use of iteration method for defining threshold
     Image = im2uint8(Image(:));
     [Histogram_Count, Bin_Number] = imhist(Image);
@@ -38,6 +44,11 @@ function level = threshold(Image)
         T(i) = round((mean_above_T+mean_below_T)/2);
 
         Threshold = T(i);
+    end
+    
+    % searching if variable exists in workspace
+    if ~exist('Threshold', 'var')
+        error("the image's quality is too low")
     end
 
     % Normalization of the threshold (0-1 scale needed for imbinarize

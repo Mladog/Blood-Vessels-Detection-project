@@ -21,6 +21,11 @@ classdef eye_pattern < matlab.mixin.SetGet
         end
         
         function set.processed_image(obj, val)
+            expected_size = [584 565];
+            image_size = size(val);
+            if image_size(1) ~= expected_size(1) || image_size(2) ~= expected_size(2)
+                error('pattern was not processed')
+            end
             obj.processed_image = val;
         end
         
@@ -69,15 +74,30 @@ classdef eye_pattern < matlab.mixin.SetGet
     
 
         function importData(obj) %function to import photo from user's computer
-            
-            [file,pt] = uigetfile({'*.jpg'},'File Selector');
+
+            [file,pt] = uigetfile({'*.jpg'; '*.png'},'File Selector');
             if isnumeric(file) || isnumeric(pt) %if there is no path given
                 error('path not given')
             end
+                       
             fullpath = {pt, file};
             obj.path = strjoin(fullpath, '');
-
-            imported = imread([pt, file]);
+            
+            if obj.path((end-3):end) == ".png"
+                [I, map] = imread(obj.path, 'png'); 
+                [~,val] = size(map);
+                if val ~=3 %if the image is RGB map's second size is equal 3
+                    if islogical(I)
+                        I = im2uint8(I);
+                    end
+                    imported = I;
+                else
+                    imported = ind2rgb(I, map);
+                end
+            else
+               imported = imread([pt, file]);
+            end
+            
             obj.original_image = imported;
         end
 

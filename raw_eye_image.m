@@ -1,6 +1,6 @@
 classdef raw_eye_image < eye_pattern
     properties (Access = 'private')
-        green_channel
+        green_channel %green channel is the best for retina detection
     end
     
     methods 
@@ -20,7 +20,7 @@ classdef raw_eye_image < eye_pattern
         end
         
         function savePattern(obj) %function to save data on user's computer
-            [file,path] = uiputfile('*.jpg'); %output file will be saved with .mat extension
+            [file,path] = uiputfile({'*.jpg;*.png'}); %output file will be saved with .jpg or .png extension
             if isnumeric(file) || isnumeric(path)
                 error('wrong path')
             end
@@ -36,11 +36,11 @@ classdef raw_eye_image < eye_pattern
     methods (Access = 'private')
         
         function crop(obj) % function to crop image by the area of interest
-            image_info = imfinfo(obj.path);
-            bits = image_info.BitDepth;
+            %image_info = imfinfo(obj.path);
             
-            if bits < 10 
-               error('wrong picture color') 
+            [~, ~, numberOfColorChannels] = size(obj.original_image);
+            if numberOfColorChannels < 3 %means it's binary, 
+                error('wrong picture color')
             end
             
             gray_image = rgb2gray(obj.original_image);
